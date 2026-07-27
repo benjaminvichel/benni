@@ -5,8 +5,6 @@ import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(SplitText, ScrollTrigger);
-
 const DURACAO_APARECER = 2;
 const DURACAO_SUMIR    = 1.5;
 const SOBREPOSICAO     = 0.05;
@@ -18,9 +16,9 @@ const FADE_TEXTS = [
 
 export default function StackedCards() {
   const outerRef = useRef<HTMLDivElement>(null);
-
   useGSAP(
     () => {
+      try { gsap.registerPlugin(SplitText, ScrollTrigger); } catch { /* HMR/extension cleanup */ }
       const container = outerRef.current!;
 
       // ── Primeiro texto: entrada NÃO scrubada — dispara ao entrar na tela ──
@@ -97,8 +95,8 @@ export default function StackedCards() {
     <div
       ref={outerRef}
       id="projects"
-      className="relative z-10"
-      style={{ background: "var(--background)", height: `${(1 + FADE_TEXTS.length) * 150}vh` }}
+      className="relative z-10 h-[240vh] md:h-[450vh]"
+      style={{ background: "var(--background)" }}
     >
       <div className="sticky top-0 h-screen flex justify-center items-center px-8">
 
@@ -112,8 +110,8 @@ export default function StackedCards() {
         {/* Primeiro texto — slide-up */}
         <h2
           id="text-slide"
-          className="absolute text-black font-bold text-[7rem] text-center leading-tight"
-          style={{ maxWidth: "90vw" }}
+          className="absolute text-black font-bold text-center leading-tight"
+          style={{ maxWidth: "90vw", fontSize: "clamp(2rem, 7vw, 7rem)" }}
         >
           I design and build — one person,<br />
           one vision, zero handoff. What gets<br />
@@ -124,8 +122,8 @@ export default function StackedCards() {
         {FADE_TEXTS.map((text, i) => (
           <h2
             key={i}
-            className="frase-fade absolute text-black font-bold text-[7rem] text-center leading-tight"
-            style={{ maxWidth: "90vw" }}
+            className="frase-fade absolute text-black font-bold text-center leading-tight"
+            style={{ maxWidth: "90vw", fontSize: "clamp(2rem, 7vw, 7rem)" }}
           >
             {text}
           </h2>

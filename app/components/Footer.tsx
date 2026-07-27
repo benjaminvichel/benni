@@ -67,8 +67,8 @@ export default function Footer() {
       </div>
 
       {/* content */}
-      <div style={{ padding: "3.5rem 3.5rem 2.5rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div className="px-6 md:px-14" style={{ paddingTop: "3.5rem", paddingBottom: "2.5rem" }}>
+        <div className="flex flex-col gap-10 md:flex-row md:justify-between md:items-start">
 
           <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
             <Link href="/" style={{
@@ -96,7 +96,7 @@ export default function Footer() {
             ))}
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", alignItems: "flex-end" }}>
+          <div className="flex flex-col gap-2 md:items-end">
             {SOCIAL.map((s) => (
               <a
                 key={s.href}

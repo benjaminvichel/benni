@@ -7,8 +7,6 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TextPlugin } from "gsap/TextPlugin";
 
-gsap.registerPlugin(ScrollTrigger, TextPlugin);
-
 const NAV_LINKS = [
   { label: "Process", href: "/process", num: "01" },
   { label: "Contact", href: "/contact", num: "02" },
@@ -23,7 +21,19 @@ export default function Header() {
   const navHover = isHome ? "#ffffff" : "#000000";
 
   useEffect(() => {
-    gsap.set("#header-island", { y: -12, autoAlpha: 0 });
+    // Guard: if DOM isn't ready (e.g. after MetaMask-induced hydration recovery), bail out
+    if (!document.getElementById("header-island")) return;
+
+    try { gsap.registerPlugin(ScrollTrigger, TextPlugin); } catch { /* HMR/extension cleanup */ }
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+
+    if (isMobile) {
+      gsap.set("#header-bar", { display: "none" });
+      gsap.set("#header-island", { y: 0, autoAlpha: 1 });
+      hoverEnabledRef.current = true;
+    } else {
+      gsap.set("#header-island", { y: -12, autoAlpha: 0 });
+    }
     gsap.set("#header-menu", { pointerEvents: "none" });
 
     // ── BENNI hover (native events — avoids Next.js Link prefetch interference) ──
@@ -103,59 +113,57 @@ export default function Header() {
     const backdrop = document.querySelector<HTMLElement>(".hm-backdrop");
     backdrop?.addEventListener("click", closeMenu);
 
-    // ── Header show/hide via ScrollTrigger ────────────────────────
-    const showBarAnim = gsap
-      .from("#header-bar", { yPercent: -100, paused: true, duration: 0.25 })
-      .progress(1);
+    // ── Header show/hide via ScrollTrigger (desktop only) ──────────
+    let showBarAnim: gsap.core.Tween | null = null;
+    let showIslandAnim: gsap.core.Tween | null = null;
 
-    const showIslandAnim = gsap
-      .to("#header-island", {
-        autoAlpha: 1,
-        y: 0,
-        paused: true,
-        duration: 0.45,
-        ease: "back.out(1.4)",
-        // only enable hover once the island has fully landed
-        onComplete: () => {
-          hoverEnabledRef.current = true;
-        },
-        // disable hover and reset text as island hides
-        onReverseComplete: () => {
-          hoverEnabledRef.current = false;
-          if (benni) {
-            gsap.killTweensOf(benni);
-            gsap.set(benni, { text: "BENNI" });
+    if (!isMobile) {
+      showBarAnim = gsap
+        .from("#header-bar", { yPercent: -100, paused: true, duration: 0.25 })
+        .progress(1);
+
+      showIslandAnim = gsap
+        .to("#header-island", {
+          autoAlpha: 1,
+          y: 0,
+          paused: true,
+          duration: 0.45,
+          ease: "back.out(1.4)",
+          onComplete: () => { hoverEnabledRef.current = true; },
+          onReverseComplete: () => {
+            hoverEnabledRef.current = false;
+            if (benni) { gsap.killTweensOf(benni); gsap.set(benni, { text: "BENNI" }); }
+          },
+        })
+        .progress(0);
+
+      ScrollTrigger.create({
+        start: "top top",
+        end: "max",
+        onUpdate(self) {
+          const atTop = window.scrollY < 80;
+          if (atTop) {
+            showBarAnim?.play();
+            hoverEnabledRef.current = false;
+            showIslandAnim?.reverse();
+            if (menuOpen) closeMenu();
+          } else if (self.direction === -1) {
+            showBarAnim?.reverse();
+            showIslandAnim?.play();
+          } else {
+            showBarAnim?.reverse();
+            hoverEnabledRef.current = false;
+            showIslandAnim?.reverse();
+            if (menuOpen) closeMenu();
           }
         },
-      })
-      .progress(0);
-
-    ScrollTrigger.create({
-      start: "top top",
-      end: "max",
-      onUpdate(self) {
-        const atTop = window.scrollY < 80;
-        if (atTop) {
-          showBarAnim.play();
-          hoverEnabledRef.current = false;
-          showIslandAnim.reverse();
-          if (menuOpen) closeMenu();
-        } else if (self.direction === -1) {
-          showBarAnim.reverse();
-          showIslandAnim.play();
-        } else {
-          showBarAnim.reverse();
-          hoverEnabledRef.current = false;
-          showIslandAnim.reverse();
-          if (menuOpen) closeMenu();
-        }
-      },
-    });
+      });
+    } // end !isMobile
 
     return () => {
       menuTl.kill();
-      showBarAnim.kill();
-      showIslandAnim.kill();
+      showBarAnim?.kill();
+      showIslandAnim?.kill();
       btn?.removeEventListener("click", handleToggle);
       backdrop?.removeEventListener("click", closeMenu);
       if (benni && benniExpand)
@@ -170,6 +178,7 @@ export default function Header() {
       {/* ── Top header: centered nav ──────────────────────────── */}
       <header
         id="header-bar"
+        className="px-4 py-5 md:px-14 md:py-8"
         style={{
           position: "fixed",
           top: 0,
@@ -179,7 +188,6 @@ export default function Header() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "2rem 3.5rem",
           pointerEvents: "none",
         }}
       >
@@ -203,8 +211,8 @@ export default function Header() {
           )}
         </div>
 
-        {/* center — nav links */}
-        <nav style={{ display: "flex", gap: "3rem", pointerEvents: "auto" }}>
+        {/* center — nav links (hidden on mobile — island handles it) */}
+        <nav className="hidden md:flex" style={{ gap: "3rem", pointerEvents: "auto" }}>
           {NAV_LINKS.map((l) => (
             <Link
               key={l.href}
@@ -224,11 +232,11 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* right — Let's talk button */}
+        {/* right — Let's talk button (hidden on mobile) */}
         <div
+          className="hidden md:flex"
           style={{
             flex: 1,
-            display: "flex",
             alignItems: "center",
             justifyContent: "flex-end",
           }}

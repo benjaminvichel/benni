@@ -1,8 +1,11 @@
 "use client";
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
+
+const TECHS = ["React", "Next.js", "TypeScript", "GSAP", "Tailwind", "Figma", "Supabase", "GitHub", "Vercel", "C#", ".NET", "MySQL"];
+const MARQUEE_ITEMS = [...TECHS, ...TECHS, ...TECHS, ...TECHS];
 
 const STEPS = [
   {
@@ -32,9 +35,44 @@ const STEPS = [
 ];
 
 export default function ProcessPage() {
-  useLayoutEffect(() => {
-    gsap.registerPlugin(ScrollTrigger, SplitText);
+  // ── Hero image spotlight reveal ──────────────────────────────
+  const maskLayerRef = useRef<HTMLDivElement>(null);
+  const maskState    = useRef({ radius: 0, x: 0, y: 0 });
 
+  const updateMask = useCallback(() => {
+    const el = maskLayerRef.current;
+    if (!el) return;
+    const { radius, x, y } = maskState.current;
+    const v = `radial-gradient(circle ${radius}px at ${x}px ${y}px, black 0%, transparent 100%)`;
+    el.style.maskImage = v;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (el.style as any).webkitMaskImage = v;
+  }, []);
+
+  const onHeroMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    maskState.current.x = e.clientX - rect.left;
+    maskState.current.y = e.clientY - rect.top;
+    updateMask();
+  }, [updateMask]);
+
+  const onHeroMouseEnter = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    maskState.current.x = e.clientX - rect.left;
+    maskState.current.y = e.clientY - rect.top;
+    gsap.killTweensOf(maskState.current);
+    gsap.to(maskState.current, { radius: 500, duration: 0.7, ease: "power2.out", onUpdate: updateMask });
+  }, [updateMask]);
+
+  const onHeroMouseLeave = useCallback(() => {
+    gsap.killTweensOf(maskState.current);
+    gsap.to(maskState.current, { radius: 0, duration: 0.6, ease: "power2.in", onUpdate: updateMask });
+  }, [updateMask]);
+
+  useLayoutEffect(() => {
+    try { gsap.registerPlugin(ScrollTrigger, SplitText); } catch { /* HMR/extension cleanup */ }
+
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
     const preExisting = new Set(ScrollTrigger.getAll());
     let mounted = true;
 
@@ -73,11 +111,11 @@ export default function ProcessPage() {
         const stepsTl = gsap.timeline({
           scrollTrigger: {
             trigger: "#steps-section",
-            start: "top top",
-            end: "+=180%",
-            pin: true,
+            start: isMobile ? "top 85%" : "top top",
+            end: isMobile ? "+=60%" : "+=180%",
+            pin: !isMobile,
             scrub: 0.8,
-            anticipatePin: 1,
+            anticipatePin: isMobile ? 0 : 1,
           },
         });
 
@@ -96,23 +134,28 @@ export default function ProcessPage() {
           }, "<0.15");
       }
 
-      // — Honesty → CTA: pin + crossfade —
-      gsap.set("#cta-layer", { autoAlpha: 0, y: 40 });
-
+      // — Honesty: pin + fade out —
       const crossTl = gsap.timeline({
         scrollTrigger: {
           trigger: "#honesty-pin",
-          start: "top top",
-          end: "+=250%",
+          start: isMobile ? "top 75%" : "top top",
+          end: isMobile ? "+=120%" : "+=150%",
           scrub: 0.8,
-          pin: true,
-          anticipatePin: 1,
+          pin: !isMobile,
+          anticipatePin: isMobile ? 0 : 1,
         },
       });
 
-      crossTl
-        .to("#honesty-layer", { autoAlpha: 0, y: -40, duration: 1, ease: "power2.in" })
-        .to("#cta-layer",     { autoAlpha: 1, y: 0,   duration: 1, ease: "power2.out" }, "-=0.2");
+      if (isMobile) {
+        crossTl
+          .fromTo("#honesty-layer", { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "power2.out" })
+          .to({}, { duration: 1.2 })
+          .to("#honesty-layer", { autoAlpha: 0, y: -40, duration: 0.4, ease: "power2.in" });
+      } else {
+        crossTl.to("#honesty-layer", { autoAlpha: 0, y: -40, duration: 1, ease: "power2.in" });
+      }
+
+      ScrollTrigger.refresh();
     });
 
     return () => {
@@ -127,8 +170,53 @@ export default function ProcessPage() {
     <div style={{ background: "var(--background)" }}>
 
       {/* 1 ── Intro ─────────────────────────────────────────────── */}
-      <section id="proc-intro" className="h-screen flex items-center px-14">
-        <div id="proc-intro-inner" className="max-w-4xl">
+      <section
+        id="proc-intro"
+        className="h-screen flex items-center px-6 md:px-14 relative overflow-hidden"
+        onMouseMove={onHeroMouseMove}
+        onMouseEnter={onHeroMouseEnter}
+        onMouseLeave={onHeroMouseLeave}
+      >
+        {/* image revealed on hover via spotlight mask */}
+        <div
+          ref={maskLayerRef}
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 0,
+            maskImage: "radial-gradient(circle 0px at 0px 0px, black 0%, transparent 100%)",
+          }}
+        >
+          <img
+            src="/me/process/code_room.jpeg"
+            alt=""
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </div>
+
+        {/* tech marquee */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 1,
+          borderTop: "1px solid rgba(0,0,0,0.07)", overflow: "hidden",
+        }}>
+          <div style={{ display: "flex", width: "max-content", animation: "marquee 28s linear infinite" }}>
+            {MARQUEE_ITEMS.map((t, i) => (
+              <span key={i} style={{
+                fontFamily: "var(--font-bebas)",
+                fontSize: "clamp(13px, 1.1vw, 18px)",
+                letterSpacing: "0.12em",
+                color: "#aaa",
+                padding: "0.9rem 0",
+                whiteSpace: "nowrap",
+              }}>
+                {t}
+                <span style={{ margin: "0 1.4rem", opacity: 0.35 }}>·</span>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div id="proc-intro-inner" className="max-w-4xl" style={{ position: "relative", zIndex: 1 }}>
           <h1
             className="font-bold leading-none tracking-tight text-black"
             style={{ fontSize: "clamp(56px, 9.5vw, 150px)" }}
@@ -143,7 +231,7 @@ export default function ProcessPage() {
           </p>
           <p
             className="text-neutral-700 mt-10 leading-relaxed"
-            style={{ fontSize: "clamp(16px, 1.4vw, 22px)", maxWidth: "600px" }}
+            style={{ fontSize: "clamp(17px, 1.6vw, 28px)", maxWidth: "600px" }}
           >
             I&apos;m a designer and developer — which means I don&apos;t hand off a
             Figma file and disappear. I take your project from the first
@@ -155,14 +243,14 @@ export default function ProcessPage() {
       {/* 2 ── 4 steps (pinned) ──────────────────────────────────── */}
       <section
         id="steps-section"
-        className="h-screen flex flex-col overflow-hidden"
+        className="md:h-screen flex flex-col overflow-hidden"
       >
         {/* heading row */}
-        <div className="px-14 pt-28 pb-10">
+        <div className="px-6 md:px-14 pt-14 pb-6">
           <h2
             id="steps-heading"
             className="font-bold leading-none tracking-tight text-black"
-            style={{ fontSize: "clamp(44px, 7.5vw, 110px)" }}
+            style={{ fontSize: "clamp(44px, 7.5vw, 130px)" }}
           >
             4 main steps.
           </h2>
@@ -172,23 +260,22 @@ export default function ProcessPage() {
         <div className="flex flex-col flex-1 border-t border-neutral-200">
 
           {/* row 1 — white */}
-          <div className="grid grid-cols-2 flex-1 border-b border-neutral-200" style={{ background: "var(--background)" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 flex-1 border-b border-neutral-200" style={{ background: "var(--background)" }}>
             {STEPS.slice(0, 2).map((s, i) => (
               <div
                 key={s.num}
-                className="step-card flex flex-col justify-center px-14 py-8"
-                style={{ borderLeft: i === 1 ? "1px solid #e5e5e5" : "none" }}
+                className={`step-card flex flex-col justify-start px-6 md:px-14 pt-7 pb-4${i === 1 ? " step-divider" : ""}`}
               >
                 <span className="split-el block text-xs font-semibold tracking-[0.3em] uppercase text-neutral-300 mb-4">
                   {s.num}
                 </span>
                 <h3
                   className="split-el font-bold text-black leading-tight mb-4"
-                  style={{ fontSize: "clamp(28px, 3.5vw, 52px)" }}
+                  style={{ fontSize: "clamp(28px, 4vw, 64px)" }}
                 >
                   {s.title}
                 </h3>
-                <p className="split-el text-neutral-500 leading-relaxed" style={{ fontSize: "clamp(14px, 1.2vw, 18px)", maxWidth: "38ch" }}>
+                <p className="split-el text-neutral-500 leading-relaxed" style={{ fontSize: "clamp(16px, 1.5vw, 24px)", maxWidth: "38ch" }}>
                   {s.description}
                 </p>
               </div>
@@ -196,23 +283,22 @@ export default function ProcessPage() {
           </div>
 
           {/* row 2 — off-white */}
-          <div className="grid grid-cols-2 flex-1" style={{ background: "#f7f6f3" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 flex-1" style={{ background: "#f7f6f3" }}>
             {STEPS.slice(2).map((s, i) => (
               <div
                 key={s.num}
-                className="step-card flex flex-col justify-center px-14 py-8"
-                style={{ borderLeft: i === 1 ? "1px solid #e0deda" : "none" }}
+                className={`step-card flex flex-col justify-start px-6 md:px-14 pt-7 pb-4${i === 1 ? " step-divider-warm" : ""}`}
               >
                 <span className="split-el block text-xs font-semibold tracking-[0.3em] uppercase text-neutral-300 mb-4">
                   {s.num}
                 </span>
                 <h3
                   className="split-el font-bold text-black leading-tight mb-4"
-                  style={{ fontSize: "clamp(28px, 3.5vw, 52px)" }}
+                  style={{ fontSize: "clamp(28px, 4vw, 64px)" }}
                 >
                   {s.title}
                 </h3>
-                <p className="split-el text-neutral-500 leading-relaxed" style={{ fontSize: "clamp(14px, 1.2vw, 18px)", maxWidth: "38ch" }}>
+                <p className="split-el text-neutral-500 leading-relaxed" style={{ fontSize: "clamp(16px, 1.5vw, 24px)", maxWidth: "38ch" }}>
                   {s.description}
                 </p>
               </div>
@@ -222,17 +308,16 @@ export default function ProcessPage() {
         </div>
       </section>
 
-      {/* 3 ── Honesty → CTA (pinned crossfade) ─────────────────── */}
+      {/* 3 ── Honesty (pinned, fades out) ──────────────────────── */}
       <section id="honesty-pin" className="h-screen overflow-hidden relative">
-
-        <div id="honesty-layer" className="absolute inset-0 flex items-center px-14">
+        <div id="honesty-layer" className="absolute inset-0 flex items-center px-6 md:px-14">
           <div className="max-w-3xl">
             <span className="block text-xs font-semibold tracking-[0.3em] uppercase text-neutral-300 mb-8">
               One more thing
             </span>
             <p
               className="font-bold text-black leading-tight"
-              style={{ fontSize: "clamp(28px, 4vw, 58px)" }}
+              style={{ fontSize: "clamp(30px, 4.5vw, 72px)" }}
             >
               A few things I don&apos;t do: guaranteed overnight results,
               mystery pricing revealed after 3 calls, or designs that look
@@ -240,31 +325,124 @@ export default function ProcessPage() {
             </p>
           </div>
         </div>
+      </section>
 
-        <div id="cta-layer" className="absolute inset-0 flex items-center justify-center text-center px-14">
-          <div className="max-w-4xl">
-            <h2
-              className="font-bold leading-none tracking-tight text-black"
-              style={{ fontSize: "clamp(56px, 9.5vw, 140px)" }}
-            >
-              Let&apos;s build it.
-            </h2>
-            <p
-              className="text-neutral-500 mt-6 leading-relaxed"
-              style={{ fontSize: "clamp(16px, 1.4vw, 22px)", maxWidth: "520px" }}
-            >
-              Tell me about your project — one call is all it takes to figure
-              out if we&apos;re a good fit.
-            </p>
-            <a
-              href="/contact"
-              className="inline-block mt-10 px-10 py-4 bg-black text-white font-semibold tracking-widest uppercase text-sm hover:bg-neutral-800 transition-colors"
-            >
-              Start a project →
-            </a>
+      {/* 4 ── Two ways to work together ─────────────────────────── */}
+      <section
+        className="px-6 md:px-14 py-20 md:py-32"
+        style={{ background: "var(--background)", zIndex: 50, position: "relative", borderTop: "1px solid #e5e5e5" }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <span className="block text-xs font-semibold tracking-[0.3em] uppercase text-neutral-300 mb-8">
+            Ways to work
+          </span>
+          <h2
+            className="font-bold leading-none tracking-tight text-black mb-16 md:mb-24"
+            style={{ fontSize: "clamp(44px, 6.5vw, 110px)" }}
+          >
+            Two ways to work together.
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0" style={{ borderTop: "1px solid #e5e5e5" }}>
+            {/* 01 — Website */}
+            <div className="ways-divider pt-10 pb-10 md:pr-20 md:pt-14 md:pb-14">
+              <span
+                className="block font-bold leading-none tracking-tight select-none mb-8"
+                style={{ fontFamily: "var(--font-bebas)", fontSize: "clamp(72px, 10vw, 140px)", color: "#e8e7e4" }}
+              >
+                01
+              </span>
+              <h3
+                className="font-bold text-black leading-tight mb-6"
+                style={{ fontSize: "clamp(28px, 3.5vw, 56px)" }}
+              >
+                Website
+              </h3>
+              <p
+                className="text-neutral-500 leading-relaxed"
+                style={{ fontSize: "clamp(16px, 1.5vw, 24px)", maxWidth: "40ch" }}
+              >
+                You need a presence online. Something clean, fast, and
+                intentional — a landing page, a portfolio, a brand site, or a
+                multi-page experience. I take it from concept to live.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "2rem" }}>
+                {["Landing page", "Portfolio", "Brand site", "Multi-page"].map((tag) => (
+                  <span key={tag} style={{
+                    fontSize: "0.78rem", fontWeight: 600, letterSpacing: "0.14em",
+                    textTransform: "uppercase", padding: "0.5rem 1.1rem",
+                    border: "1px solid #d4d3d0", color: "#888",
+                  }}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* 02 — Full System */}
+            <div className="pt-10 md:pl-20 md:pt-14 pb-14">
+              <span
+                className="block font-bold leading-none tracking-tight select-none mb-8"
+                style={{ fontFamily: "var(--font-bebas)", fontSize: "clamp(72px, 10vw, 140px)", color: "#e8e7e4" }}
+              >
+                02
+              </span>
+              <h3
+                className="font-bold text-black leading-tight mb-6"
+                style={{ fontSize: "clamp(28px, 3.5vw, 56px)" }}
+              >
+                Full System
+              </h3>
+              <p
+                className="text-neutral-500 leading-relaxed"
+                style={{ fontSize: "clamp(16px, 1.5vw, 24px)", maxWidth: "40ch" }}
+              >
+                You need something that does more. User authentication,
+                third-party integrations, custom dashboards, complex business
+                logic. I build the whole thing — front to back.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "2rem" }}>
+                {["Authentication", "API integrations", "Dashboards", "Business logic"].map((tag) => (
+                  <span key={tag} style={{
+                    fontSize: "0.78rem", fontWeight: 600, letterSpacing: "0.14em",
+                    textTransform: "uppercase", padding: "0.5rem 1.1rem",
+                    border: "1px solid #d4d3d0", color: "#888",
+                  }}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
+      {/* 5 ── Let's build it (CTA final) ──────────────────────── */}
+      <section
+        className="h-screen flex items-center justify-center text-center px-6 md:px-14"
+        style={{ background: "var(--background)", position: "relative", zIndex: 50 }}
+      >
+        <div className="max-w-4xl">
+          <h2
+            className="font-bold leading-none tracking-tight text-black"
+            style={{ fontSize: "clamp(56px, 9.5vw, 140px)" }}
+          >
+            Let&apos;s build it.
+          </h2>
+          <p
+            className="text-neutral-500 mt-6 leading-relaxed mx-auto"
+            style={{ fontSize: "clamp(17px, 1.6vw, 28px)", maxWidth: "520px" }}
+          >
+            Tell me about your project — one call is all it takes to figure
+            out if we&apos;re a good fit.
+          </p>
+          <a
+            href="/contact"
+            className="inline-block mt-10 px-10 py-4 bg-black text-white font-semibold tracking-widest uppercase text-sm hover:bg-neutral-800 transition-colors"
+          >
+            Start a project →
+          </a>
+        </div>
       </section>
 
     </div>

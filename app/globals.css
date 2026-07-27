@@ -70,3 +70,18 @@ body {
 .char-anim-trigger:hover .char-anim-b span {
   transform: translateY(0);
 }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-25%); }
+}
+
+/* responsive dividers for step cards and "two ways" */
+.step-divider      { border-top: 1px solid #e5e5e5; }
+.step-divider-warm { border-top: 1px solid #e0deda; }
+.ways-divider      { border-bottom: 1px solid #e5e5e5; padding-bottom: 2.5rem; }
+@media (min-width: 768px) {
+  .step-divider      { border-top: none; border-left: 1px solid #e5e5e5; }
+  .step-divider-warm { border-top: none; border-left: 1px solid #e0deda; }
+  .ways-divider      { border-bottom: none; padding-bottom: 0; border-right: 1px solid #e5e5e5; }
+}

@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { Turnstile } from "@marsidev/react-turnstile";
+import type { TurnstileInstance } from "@marsidev/react-turnstile";
 
 const TIMELINE_OPTIONS = ["ASAP", "Within 1 month", "Within 2–3 months", "Not sure yet"];
 const BUDGET_OPTIONS   = ["R$150–R$1.000", "R$1.000–R$2.500", "R$2.500–R$5.000", "Above R$5.000", "Custom value"];
@@ -14,19 +16,42 @@ export default function ContactPage() {
     message: "",
   });
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const handleSubmit = (e: { preventDefault(): void }) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (form.honeypot) return;
-    console.log(form);
-    setSent(true);
+    if (!turnstileToken) {
+      setError("Please complete the security check.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, turnstileToken }),
+      });
+      if (!res.ok) throw new Error("Failed to send");
+      setSent(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      turnstileRef.current?.reset();
+      setTurnstileToken("");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center px-8 pt-44 pb-32" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen flex flex-col items-center px-6 md:px-8 pt-32 md:pt-44 pb-20 md:pb-32" style={{ background: "var(--background)" }}>
       {/* Honeypot */}
       <div style={{ display: "none" }} aria-hidden="true">
         <input name="honeypot" tabIndex={-1} autoComplete="off" value={form.honeypot}
@@ -94,12 +119,23 @@ export default function ContactPage() {
               className="fi resize-none mt-2" />
           </Field>
 
-          <div className="border-t border-neutral-200 pt-10">
+          <div className="border-t border-neutral-200 pt-10 space-y-6">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+              onSuccess={setTurnstileToken}
+              onExpire={() => setTurnstileToken("")}
+              onError={() => setTurnstileToken("")}
+            />
+            {error && (
+              <p className="text-red-500 text-sm">{error}</p>
+            )}
             <button
               type="submit"
-              className="w-full py-5 bg-black text-white text-base font-semibold tracking-widest uppercase hover:bg-neutral-800 transition-colors duration-200"
+              disabled={loading}
+              className="w-full py-5 bg-black text-white text-base font-semibold tracking-widest uppercase hover:bg-neutral-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send message →
+              {loading ? "Sending..." : "Send message →"}
             </button>
           </div>
         </form>
