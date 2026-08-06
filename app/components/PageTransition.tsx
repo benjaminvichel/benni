@@ -2,6 +2,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const FONT: React.CSSProperties = {
   fontFamily: "var(--font-bebas)",
@@ -66,7 +67,10 @@ export default function PageTransition() {
     tlRef.current?.kill();
 
     const tl = gsap.timeline({
-      onComplete: () => gsap.set(overlay, { yPercent: 100 }),
+      onComplete: () => {
+        gsap.set(overlay, { yPercent: 100 });
+        ScrollTrigger.refresh();
+      },
     });
     tlRef.current = tl;
 
@@ -122,7 +126,7 @@ export default function PageTransition() {
 
       e.preventDefault();
       e.stopPropagation();
-      playEnter(() => router.push(href));
+      playEnter(() => { window.scrollTo(0, 0); router.push(href); });
     };
 
     document.addEventListener("click", handleClick, true); // capture phase

@@ -578,7 +578,7 @@ export default function Home() {
                 <span className="block text-xs tracking-[0.3em] uppercase text-neutral-400 mb-5">Experience</span>
                 <h2 className="text-4xl md:text-7xl font-bold leading-tight mb-8">Real projects,<br />real clients.</h2>
                 <p className="text-neutral-500 text-lg leading-relaxed">
-                  CS internship coding interfaces at UNISINOS. Freelance websites for independent clients. Academic projects including UniConnect, a full React web app. Every project taught me something the classroom didn't.
+                  CS internship coding interfaces at UNISINOS. Freelance websites for independent clients. Academic and personal projects across the full stack. Every project taught me something the classroom didn't.
                 </p>
               </div>
               <div id="about-left-3" className="py-14 md:py-0 md:h-screen flex flex-col md:justify-center">
@@ -609,18 +609,15 @@ export default function Home() {
             {/* coluna direita — 3 blocos de scroll */}
             <div>
               <div id="about-right-1" className="py-14 md:py-0 md:h-screen flex flex-col md:justify-center">
-                <span className="block text-xs tracking-[0.3em] uppercase text-neutral-400 mb-5">Stack</span>
-                <p className="text-neutral-500 text-lg leading-relaxed mb-8">
-                  Front-end: React, Next.js, TypeScript, GSAP, Figma. Back-end: C#, .NET Framework, .NET Core Web API, MySQL. I'm comfortable on both sides of the stack — and I speak Portuguese, German and English.
+                <span className="block text-xs tracking-[0.3em] uppercase text-neutral-400 mb-5">Languages</span>
+                <p className="text-neutral-500 text-lg leading-relaxed">
+                  I work with clients in Portuguese, German, and English — which means no miscommunication, no lost nuance. Wherever you are, we can talk directly.
                 </p>
-                <a href="/process" className="inline-block text-base font-semibold tracking-widest uppercase border-b border-black pb-0.5 hover:opacity-50 transition-opacity">
-                  View process →
-                </a>
               </div>
               <div id="about-right-2" className="py-14 md:py-0 md:h-screen flex flex-col md:justify-center">
                 <span className="block text-xs tracking-[0.3em] uppercase text-neutral-400 mb-5">Background</span>
                 <p className="text-neutral-500 text-lg leading-relaxed">
-                  CS degree from UNISINOS (2025). Interned as a UI/UX developer, then spent years as a full-stack developer and admin supervisor — building real systems under real pressure. Now focused on design-led web development.
+                  Bachelor's degree in Computer Science from UNISINOS. Interned as a UI/UX developer, then spent years as a full-stack developer and admin supervisor — building real systems under real pressure. Now focused on design-led web development.
                 </p>
               </div>
               <div id="about-right-3" className="py-14 md:py-0 md:h-screen flex flex-col md:justify-center">

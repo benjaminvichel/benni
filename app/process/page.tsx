@@ -1,5 +1,5 @@
 "use client";
-import { useLayoutEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -69,100 +69,100 @@ export default function ProcessPage() {
     gsap.to(maskState.current, { radius: 0, duration: 0.6, ease: "power2.in", onUpdate: updateMask });
   }, [updateMask]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     try { gsap.registerPlugin(ScrollTrigger, SplitText); } catch { /* HMR/extension cleanup */ }
 
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
-    const preExisting = new Set(ScrollTrigger.getAll());
     let mounted = true;
+    let rafId: number;
+    const triggers: ScrollTrigger[] = [];
+    const splits: ReturnType<typeof SplitText.create>[] = [];
 
-    // ── 1. Intro fades as it scrolls off (synchronous, no pin) ──
-    gsap.to("#proc-intro-inner", {
-      autoAlpha: 0,
-      y: -40,
-      ease: "none",
-      scrollTrigger: {
-        trigger: "#proc-intro",
-        start: "top top",
-        end: "bottom top",
-        scrub: 1,
-      },
-    });
-
-    // ── 2 + 3: both pins created together after fonts load ───────
-    // Creating them in the same tick guarantees correct DOM order
-    // and ScrollTrigger positions.
-    document.fonts.ready.then(() => {
+    rafId = requestAnimationFrame(() => {
       if (!mounted) return;
 
-      // — Steps: pin + SplitText timeline —
-      const headingEl = document.querySelector<Element>("#steps-heading");
-      const stepEls   = Array.from(document.querySelectorAll<Element>(".step-card .split-el"));
+      const isMobile = window.matchMedia("(max-width: 767px)").matches;
 
-      if (headingEl && stepEls.length) {
-        const headingSplit = SplitText.create(headingEl, { type: "words,lines", mask: "lines" });
-        const stepSplits   = stepEls.map((el) =>
-          SplitText.create(el, { type: "words,lines", mask: "lines" })
-        );
-        const allStepLines = stepSplits.flatMap((s) => s.lines);
+      // ── 1. Intro fades as it scrolls off ──
+      triggers.push(
+        ScrollTrigger.create({
+          trigger: "#proc-intro",
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+          animation: gsap.to("#proc-intro-inner", { autoAlpha: 0, y: -40, ease: "none" }),
+        })
+      );
 
-        gsap.set([...headingSplit.lines, ...allStepLines], { yPercent: 120 });
+      // ── 2 + 3: pins after fonts load ──────────────────────────────
+      document.fonts.ready.then(() => {
+        if (!mounted) return;
 
-        const stepsTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: "#steps-section",
-            start: isMobile ? "top 85%" : "top top",
-            end: isMobile ? "+=60%" : "+=180%",
-            pin: !isMobile,
+        // — Steps —
+        const headingEl = document.querySelector<Element>("#steps-heading");
+        const stepEls   = Array.from(document.querySelectorAll<Element>(".step-card .split-el"));
+
+        if (headingEl && stepEls.length) {
+          const headingSplit = SplitText.create(headingEl, { type: "words,lines", mask: "lines" });
+          splits.push(headingSplit);
+          const stepSplits = stepEls.map((el) => {
+            const s = SplitText.create(el, { type: "words,lines", mask: "lines" });
+            splits.push(s);
+            return s;
+          });
+          const allStepLines = stepSplits.flatMap((s) => s.lines);
+          gsap.set([...headingSplit.lines, ...allStepLines], { yPercent: 120 });
+
+          const stepsTl = gsap.timeline();
+          stepsTl
+            .to(headingSplit.lines, { yPercent: 0, stagger: 0.06, duration: 1, ease: "power2.out" })
+            .to(allStepLines,       { yPercent: 0, stagger: 0.02, duration: 1, ease: "power2.out" }, "<0.15");
+
+          triggers.push(
+            ScrollTrigger.create({
+              trigger: "#steps-section",
+              start: isMobile ? "top 85%" : "top top",
+              end: isMobile ? "+=60%" : "+=180%",
+              pin: !isMobile,
+              scrub: 0.8,
+              anticipatePin: isMobile ? 0 : 1,
+              animation: stepsTl,
+            })
+          );
+        }
+
+        // — Honesty —
+        const crossTl = gsap.timeline();
+        if (isMobile) {
+          crossTl
+            .fromTo("#honesty-layer", { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "power2.out" })
+            .to({}, { duration: 1.2 })
+            .to("#honesty-layer", { autoAlpha: 0, y: -40, duration: 0.4, ease: "power2.in" });
+        } else {
+          crossTl.to("#honesty-layer", { autoAlpha: 0, y: -40, duration: 1, ease: "power2.in" });
+        }
+
+        triggers.push(
+          ScrollTrigger.create({
+            trigger: "#honesty-pin",
+            start: isMobile ? "top 75%" : "top top",
+            end: isMobile ? "+=120%" : "+=150%",
             scrub: 0.8,
+            pin: !isMobile,
             anticipatePin: isMobile ? 0 : 1,
-          },
-        });
-
-        stepsTl
-          .to(headingSplit.lines, {
-            yPercent: 0,
-            stagger: 0.06,
-            duration: 1,
-            ease: "power2.out",
+            animation: crossTl,
           })
-          .to(allStepLines, {
-            yPercent: 0,
-            stagger: 0.02,
-            duration: 1,
-            ease: "power2.out",
-          }, "<0.15");
-      }
+        );
 
-      // — Honesty: pin + fade out —
-      const crossTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: "#honesty-pin",
-          start: isMobile ? "top 75%" : "top top",
-          end: isMobile ? "+=120%" : "+=150%",
-          scrub: 0.8,
-          pin: !isMobile,
-          anticipatePin: isMobile ? 0 : 1,
-        },
+        ScrollTrigger.refresh();
       });
-
-      if (isMobile) {
-        crossTl
-          .fromTo("#honesty-layer", { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "power2.out" })
-          .to({}, { duration: 1.2 })
-          .to("#honesty-layer", { autoAlpha: 0, y: -40, duration: 0.4, ease: "power2.in" });
-      } else {
-        crossTl.to("#honesty-layer", { autoAlpha: 0, y: -40, duration: 1, ease: "power2.in" });
-      }
-
-      ScrollTrigger.refresh();
     });
 
     return () => {
       mounted = false;
-      ScrollTrigger.getAll()
-        .filter((t) => !preExisting.has(t))
-        .forEach((t) => t.kill());
+      cancelAnimationFrame(rafId);
+      triggers.forEach((t) => t.kill());
+      splits.forEach((s) => s.revert());
+      gsap.set("#proc-intro-inner, #honesty-layer", { clearProps: "all" });
     };
   }, []);
 
@@ -203,14 +203,14 @@ export default function ProcessPage() {
             {MARQUEE_ITEMS.map((t, i) => (
               <span key={i} style={{
                 fontFamily: "var(--font-bebas)",
-                fontSize: "clamp(13px, 1.1vw, 18px)",
+                fontSize: "clamp(20px, 2vw, 36px)",
                 letterSpacing: "0.12em",
-                color: "#aaa",
-                padding: "0.9rem 0",
+                color: "#555",
+                padding: "1.1rem 0",
                 whiteSpace: "nowrap",
               }}>
                 {t}
-                <span style={{ margin: "0 1.4rem", opacity: 0.35 }}>·</span>
+                <span style={{ margin: "0 1.8rem", opacity: 0.4 }}>·</span>
               </span>
             ))}
           </div>

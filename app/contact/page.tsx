@@ -4,7 +4,7 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import type { TurnstileInstance } from "@marsidev/react-turnstile";
 
 const TIMELINE_OPTIONS = ["ASAP", "Within 1 month", "Within 2–3 months", "Not sure yet"];
-const BUDGET_OPTIONS   = ["R$150–R$1.000", "R$1.000–R$2.500", "R$2.500–R$5.000", "Above R$5.000", "Custom value"];
+const BUDGET_OPTIONS   = ["$150–$1,000", "$1,000–$2,500", "$2,500–$5,000", "Above $5,000", "Custom value"];
 
 export default function ContactPage() {
   const [form, setForm] = useState({

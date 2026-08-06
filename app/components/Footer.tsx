@@ -11,10 +11,9 @@ const NAV = [
 ];
 
 const SOCIAL = [
-  { label: "Instagram", href: "https://instagram.com" },
-  { label: "LinkedIn",  href: "https://linkedin.com"  },
-  { label: "GitHub",    href: "https://github.com"    },
-  { label: "Behance",   href: "https://behance.net"   },
+  { label: "Instagram", href: "https://instagram.com/v_benny__"              },
+  { label: "LinkedIn",  href: "https://www.linkedin.com/in/benjaminvichel"   },
+  { label: "GitHub",    href: "https://github.com/benjaminvichel"            },
 ];
 
 // same structure as the codepen reference — viewBox 0 0 2278 683

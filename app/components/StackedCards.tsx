@@ -64,8 +64,11 @@ export default function StackedCards() {
       const fadeEls = gsap.utils.toArray<HTMLElement>(".frase-fade", container);
       gsap.set(fadeEls, { autoAlpha: 0 });
 
+      const fadeSplits: ReturnType<typeof SplitText.create>[] = [];
+
       fadeEls.forEach((el, i) => {
         const split    = SplitText.create(el, { type: "words,chars" });
+        fadeSplits.push(split);
         const phraseTl = gsap.timeline();
 
         phraseTl.set(el, { autoAlpha: 1 });
@@ -87,6 +90,12 @@ export default function StackedCards() {
 
         masterTl.add(phraseTl, `-=${SOBREPOSICAO}`);
       });
+
+      return () => {
+        slideSplit.revert();
+        fadeSplits.forEach((s) => s.revert());
+        gsap.set(fadeEls, { clearProps: "all" });
+      };
     },
     { scope: outerRef },
   );
