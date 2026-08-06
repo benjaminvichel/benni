@@ -160,6 +160,8 @@ export default function Home() {
         const info = (n: string) =>
           document.querySelector<HTMLElement>(`#project-info${n}`);
 
+        gsap.set([info(""), info("-2"), info("-3"), info("-4")], { autoAlpha: 0 });
+
         worksTl
           .to({}, { duration: 2.5 })
           .fromTo(
@@ -185,12 +187,12 @@ export default function Home() {
           )
           .fromTo(
             info(""),
-            { x: 80, opacity: 0 },
-            { x: 0, opacity: 1, ease: "power2.out", duration: 0.8 },
+            { x: 80, autoAlpha: 0 },
+            { x: 0, autoAlpha: 1, ease: "power2.out", duration: 0.8 },
             "<0.4",
           )
           .to([img(""), info("")], {
-            opacity: 0,
+            autoAlpha: 0,
             y: -40,
             ease: "power2.in",
             duration: 1,
@@ -203,12 +205,12 @@ export default function Home() {
           )
           .fromTo(
             info("-2"),
-            { x: -80, opacity: 0 },
-            { x: 0, opacity: 1, ease: "power2.out", duration: 0.8 },
+            { x: -80, autoAlpha: 0 },
+            { x: 0, autoAlpha: 1, ease: "power2.out", duration: 0.8 },
             "<0.4",
           )
           .to([img("-2"), info("-2")], {
-            opacity: 0,
+            autoAlpha: 0,
             y: -40,
             ease: "power2.in",
             duration: 1,
@@ -221,12 +223,12 @@ export default function Home() {
           )
           .fromTo(
             info("-3"),
-            { x: 80, opacity: 0 },
-            { x: 0, opacity: 1, ease: "power2.out", duration: 0.8 },
+            { x: 80, autoAlpha: 0 },
+            { x: 0, autoAlpha: 1, ease: "power2.out", duration: 0.8 },
             "<0.4",
           )
           .to([img("-3"), info("-3")], {
-            opacity: 0,
+            autoAlpha: 0,
             y: -40,
             ease: "power2.in",
             duration: 1,
@@ -239,12 +241,12 @@ export default function Home() {
           )
           .fromTo(
             info("-4"),
-            { x: -80, opacity: 0 },
-            { x: 0, opacity: 1, ease: "power2.out", duration: 0.8 },
+            { x: -80, autoAlpha: 0 },
+            { x: 0, autoAlpha: 1, ease: "power2.out", duration: 0.8 },
             "<0.4",
           )
           .to([img("-4"), info("-4")], {
-            opacity: 0,
+            autoAlpha: 0,
             y: -40,
             ease: "power2.in",
             duration: 1,
@@ -451,7 +453,7 @@ export default function Home() {
           </div>
 
           {/* card 1 — imagem esquerda/cima, texto direita/baixo */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 md:flex-row md:items-end md:justify-start md:pb-16 md:pl-14 md:gap-10 md:px-0">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 md:flex-row md:items-end md:justify-start md:pb-16 md:pl-14 md:gap-10 md:px-0" style={{ pointerEvents: "none" }}>
             <div
               id="project-image"
               className="w-full h-[35vh] shrink-0 rounded-2xl overflow-hidden md:w-[28vw] md:h-[55vh]"
@@ -461,15 +463,17 @@ export default function Home() {
               <span className="block text-white/40 text-xs tracking-[0.3em] uppercase mb-3">01 — Product</span>
               <h3 className="text-2xl md:text-7xl font-bold leading-tight">Valotel</h3>
               <p className="text-white/50 text-base md:text-xl mt-3 leading-relaxed">Turns a 15-minute quoting process into 30 seconds — designed around how small pousada owners actually work, not how software usually expects them to.</p>
+              <a href="https://www.valotel.com.br/" target="_blank" rel="noopener noreferrer" style={{ pointerEvents: "auto" }} className="inline-block mt-5 text-sm font-semibold tracking-widest uppercase text-white/60 hover:text-white transition-colors">See the project →</a>
             </div>
           </div>
 
           {/* card 2 — imagem direita/cima, texto esquerda/baixo */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 md:flex-row md:items-end md:justify-end md:pb-16 md:pr-14 md:gap-10 md:px-0">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 md:flex-row md:items-end md:justify-end md:pb-16 md:pr-14 md:gap-10 md:px-0" style={{ pointerEvents: "none" }}>
             <div id="project-info-2" className="text-white pb-0 w-full order-last md:order-0 md:max-w-xl md:pb-4">
               <span className="block text-white/40 text-xs tracking-[0.3em] uppercase mb-3">02 — Platform</span>
               <h3 className="text-2xl md:text-7xl font-bold leading-tight">EnglishIn<br className="hidden md:block" />Progress</h3>
               <p className="text-white/50 text-base md:text-xl mt-3 leading-relaxed">A full learning platform where students watch lessons, book live classes with teachers, and connect in community forums — built to scale across all of it simultaneously.</p>
+              <a href="https://englishinprogress.com.br/" target="_blank" rel="noopener noreferrer" style={{ pointerEvents: "auto" }} className="inline-block mt-5 text-sm font-semibold tracking-widest uppercase text-white/60 hover:text-white transition-colors">See the project →</a>
             </div>
             <div
               id="project-image-2"
@@ -479,7 +483,7 @@ export default function Home() {
           </div>
 
           {/* card 3 — imagem esquerda/cima, texto direita/baixo */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 md:flex-row md:items-end md:justify-start md:pb-16 md:pl-14 md:gap-10 md:px-0">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 md:flex-row md:items-end md:justify-start md:pb-16 md:pl-14 md:gap-10 md:px-0" style={{ pointerEvents: "none" }}>
             <div
               id="project-image-3"
               className="w-full h-[35vh] shrink-0 rounded-2xl overflow-hidden md:w-[28vw] md:h-[55vh]"
@@ -489,15 +493,17 @@ export default function Home() {
               <span className="block text-white/40 text-xs tracking-[0.3em] uppercase mb-3">03 — Web Design</span>
               <h3 className="text-2xl md:text-7xl font-bold leading-tight">Illustration<br className="hidden md:block" />Portfolio</h3>
               <p className="text-white/50 text-base md:text-xl mt-3 leading-relaxed">An illustrator's portfolio — custom branding, handwritten typography, and an animated splash screen, every detail shaped to reflect her visual identity.</p>
+              <a href="https://hannavichel.benni.com.br/" target="_blank" rel="noopener noreferrer" style={{ pointerEvents: "auto" }} className="inline-block mt-5 text-sm font-semibold tracking-widest uppercase text-white/60 hover:text-white transition-colors">See the project →</a>
             </div>
           </div>
 
           {/* card 4 — imagem direita/cima, texto esquerda/baixo */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 md:flex-row md:items-end md:justify-end md:pb-16 md:pr-14 md:gap-10 md:px-0">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 md:flex-row md:items-end md:justify-end md:pb-16 md:pr-14 md:gap-10 md:px-0" style={{ pointerEvents: "none" }}>
             <div id="project-info-4" className="text-white pb-0 w-full order-last md:order-0 md:max-w-xl md:pb-4">
               <span className="block text-white/40 text-xs tracking-[0.3em] uppercase mb-3">04 — Tool</span>
               <h3 className="text-2xl md:text-7xl font-bold leading-tight">BenTech</h3>
               <p className="text-white/50 text-base md:text-xl mt-3 leading-relaxed">An enterprise-grade tool that automates daily rate calculations for hotel budget quotations — featuring an interactive calendar, admin-controlled custom pricing per date, and a dedicated internal API connecting the frontend to a centralized database.</p>
+              <a href="https://github.com/benjaminvichel/BenTech" target="_blank" rel="noopener noreferrer" style={{ pointerEvents: "auto" }} className="inline-block mt-5 text-sm font-semibold tracking-widest uppercase text-white/60 hover:text-white transition-colors">See the project →</a>
             </div>
             <div
               id="project-image-4"
