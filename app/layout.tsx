@@ -40,7 +40,7 @@ const oswald = Oswald({
 });
 
 const BASE_URL = "https://benni.com.br";
-const DESCRIPTION = "Designer and developer building fast, intentional websites — from concept to live, without handoff. Based in Brazil, working in PT, DE and EN.";
+const DESCRIPTION = "Designer and developer building fast, intentional websites — from concept to live, without handoff. Based in Germany, working in PT, DE and EN.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

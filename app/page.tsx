@@ -370,7 +370,7 @@ export default function Home() {
               Benjamin Vichel
             </span>
             <p className="text-white/50 text-sm font-light tracking-widest mt-2 select-none">
-              Based in Brazil.
+              Based in Germany.
             </p>
             {/* subtitle — desktop only inline */}
             <div id="hero-subtitle-wrap" className="hidden md:block mt-35 select-none">
@@ -577,7 +577,7 @@ export default function Home() {
                 <span className="block text-xs tracking-[0.3em] uppercase text-neutral-400 mb-5">About</span>
                 <h2 className="text-4xl md:text-7xl font-bold leading-tight mb-8">Benjamin<br />Vichel</h2>
                 <p className="text-neutral-500 text-lg leading-relaxed">
-                  Computer Science graduate and full-stack developer based in Brazil. I design and build web experiences end-to-end — from interface to infrastructure, from Figma to production.
+                  Computer Science graduate and full-stack developer based in Germany. I design and build web experiences end-to-end — from interface to infrastructure, from Figma to production.
                 </p>
               </div>
               <div id="about-left-2" className="py-14 md:py-0 md:h-screen flex flex-col md:justify-center">
@@ -591,7 +591,7 @@ export default function Home() {
                 <span className="block text-xs tracking-[0.3em] uppercase text-neutral-400 mb-5">Availability</span>
                 <h2 className="text-4xl md:text-7xl font-bold leading-tight mb-8">Open for<br />projects.</h2>
                 <p className="text-neutral-500 text-lg leading-relaxed">
-                  Available for freelance projects and long-term collaborations. Based in Brazil, working remotely with clients worldwide.
+                  Available for freelance projects and long-term collaborations. Based in Germany, working remotely with clients worldwide.
                 </p>
               </div>
             </div>
